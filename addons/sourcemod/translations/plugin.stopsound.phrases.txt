@@ -1,0 +1,68 @@
+"Phrases"
+{
+	"Chat Prefix"
+	{
+		"en"	"{green}[StopSound]{default}"
+		"ru"	"{green}[StopSound]{default}"
+	}
+
+	"Weapon sounds enabled"
+	{
+		"en"	"Weapon sounds {green}enabled{default}!"
+		"ru"	"Звуки стрельбы {green}включены{default}!"
+	}
+
+	"Weapon sounds disabled"
+	{
+		"en"	"Weapon sounds {darkred}disabled{default}!"
+		"ru"	"Звуки стрельбы {darkred}отключены{default}!"
+	}
+
+	"Map music enabled"
+	{
+		"en"	"Map music {green}enabled{default}!"
+		"ru"	"Музыка на картах {green}включена{default}!"
+	}
+
+	"Map music disabled"
+	{
+		"en"	"Map music {darkred}disabled{default}!"
+		"ru"	"Музыка на картах {darkred}отключена{default}!"
+	}
+
+	"Cookie Menu Stop Sounds"
+	{
+		"en"	"Stop Sounds"
+		"ru"	"Отключение звуков"
+	}
+
+	"Cookie Menu Stop Sounds Title"
+	{
+		"en"	"Stop Sounds Configuration"
+		"ru"	"Настройки Отключения Звуков"
+	}
+
+	"Weapon Sounds"
+	{
+		"en"	"Weapon sounds"
+		"ru"	"Звуки стрельбы"
+	}
+
+	"Map Sounds"
+	{
+		"en"	"Map music"
+		"ru"	"Музыка на картах"
+	}
+
+	"Disabled"
+	{
+		"en"	": Disabled"
+		"ru"	" [Выключено]"
+	}
+
+	"Enabled"
+	{
+		"en"	": Enabled"
+		"ru"	" [Включено]"
+	}
+}
