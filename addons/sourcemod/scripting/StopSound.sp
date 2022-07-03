@@ -390,6 +390,7 @@ public int MenuHandler_StopSoundsSettings(Menu menu, MenuAction action, int clie
 	{
 		delete menu;
 	}
+	return 0;
 }
 
 public Action Hook_NormalSound_CSS(int clients[MAXPLAYERS], int &numClients, char sample[PLATFORM_MAX_PATH],
