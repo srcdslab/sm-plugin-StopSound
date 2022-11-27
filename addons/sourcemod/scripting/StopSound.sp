@@ -7,8 +7,6 @@
 #include <clientprefs>
 #include <multicolors>
 
-#define PLUGIN_VERSION "3.1.0"
-
 bool g_bStopWeaponSounds[MAXPLAYERS+1] = { false, ... };
 bool g_bStopMapMusic[MAXPLAYERS+1] = { false, ... };
 
@@ -25,7 +23,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = PLUGIN_VERSION,
+	version = "3.1.0",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -58,7 +56,6 @@ public void OnPluginStart()
 	HookEvent("round_end", Event_RoundEnd);
 	HookEvent("player_spawn", Event_PlayerSpawn);
 
-	CreateConVar("sm_stopsound_version", PLUGIN_VERSION, "Toggle Weapon Sounds", FCVAR_NOTIFY|FCVAR_DONTRECORD|FCVAR_REPLICATED);
 	RegConsoleCmd("sm_stopsound", Command_StopSound, "Toggle hearing weapon sounds");
 	RegConsoleCmd("sm_sound", Command_StopSound, "Toggle hearing weapon sounds");
 	RegConsoleCmd("sm_stopmusic", Command_StopMusic, "Toggle hearing map music");
