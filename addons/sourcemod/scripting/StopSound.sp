@@ -23,15 +23,15 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.1.0",
+	version = "3.1.1",
 	url = "http://www.sourcemod.net/"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-	if(GetEngineVersion() != Engine_CSGO && GetEngineVersion() != Engine_CSS)
+	if(GetEngineVersion() != Engine_CSS)
 	{
-		strcopy(error, err_max, "This plugin supports only CS:GO and CS:S!");
+		strcopy(error, err_max, "This plugin supports only CS:S!");
 		return APLRes_Failure;
 	}
 
@@ -71,25 +71,12 @@ public void OnPluginStart()
 	UserMsg ReloadEffect = GetUserMessageId("ReloadEffect");
 
 	// Game-specific setup
-	if(GetEngineVersion() == Engine_CSGO)
-	{
-		// Weapon sounds will be caught here.
-		AddNormalSoundHook(Hook_NormalSound_CSGO);
+	// Weapon sounds will be caught here.
+	AddNormalSoundHook(Hook_NormalSound_CSS);
 
-		if(ReloadEffect != INVALID_MESSAGE_ID)
-		{
-			HookUserMessage(ReloadEffect, Hook_ReloadEffect_CSGO, true);
-		}
-	}
-	else // CS:S
+	if(ReloadEffect != INVALID_MESSAGE_ID)
 	{
-		// Weapon sounds will be caught here.
-		AddNormalSoundHook(Hook_NormalSound_CSS);
-
-		if(ReloadEffect != INVALID_MESSAGE_ID)
-		{
-			HookUserMessage(ReloadEffect, Hook_ReloadEffect_CSS, true);
-		}
+		HookUserMessage(ReloadEffect, Hook_ReloadEffect_CSS, true);
 	}
 
 	// Late load
@@ -122,20 +109,10 @@ public void OnPluginEnd()
 	UserMsg ReloadEffect = GetUserMessageId("ReloadEffect");
 
 	// Remove game-specific
-	if(GetEngineVersion() == Engine_CSGO)
-	{
-		RemoveNormalSoundHook(Hook_NormalSound_CSGO);
+	RemoveNormalSoundHook(Hook_NormalSound_CSS);
 
-		if(ReloadEffect != INVALID_MESSAGE_ID)
-			UnhookUserMessage(ReloadEffect, Hook_ReloadEffect_CSGO, true);
-	}
-	else
-	{
-		RemoveNormalSoundHook(Hook_NormalSound_CSS);
-
-		if(ReloadEffect != INVALID_MESSAGE_ID)
-			UnhookUserMessage(ReloadEffect, Hook_ReloadEffect_CSS, true);
-	}
+	if(ReloadEffect != INVALID_MESSAGE_ID)
+		UnhookUserMessage(ReloadEffect, Hook_ReloadEffect_CSS, true);
 }
 
 public void OnMapStart()
@@ -422,38 +399,6 @@ public Action Hook_NormalSound_CSS(int clients[MAXPLAYERS], int &numClients, cha
 	return (numClients > 0) ? Plugin_Changed : Plugin_Stop;
 }
 
-public Action Hook_NormalSound_CSGO(int clients[MAXPLAYERS], int &numClients, char sample[PLATFORM_MAX_PATH],
-	  int &entity, int &channel, float &volume, int &level, int &pitch, int &flags,
-	  char soundEntry[PLATFORM_MAX_PATH], int &seed)
-{
-	if(!g_bStopWeaponSoundsHooked)
-		return Plugin_Continue;
-
-	// Ignore non-weapon sounds.
-	if(channel != SNDCHAN_WEAPON &&
-		!(channel == SNDCHAN_AUTO && strncmp(sample, "physics/flesh", 13) == 0) &&
-		!(channel == SNDCHAN_STATIC && StrContains(sample, "player/headshot", true) != -1))
-	{
-		return Plugin_Continue;
-	}
-
-	int j = 0;
-	for(int i = 0; i < numClients; i++)
-	{
-		int client = clients[i];
-		if(!g_bStopWeaponSounds[client] && IsClientInGame(client))
-		{
-			// Keep client.
-			clients[j] = clients[i];
-			j++;
-		}
-	}
-
-	numClients = j;
-
-	return (numClients > 0) ? Plugin_Changed : Plugin_Stop;
-}
-
 public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int numClients, float delay)
 {
 	if(!g_bStopWeaponSoundsHooked)
@@ -483,38 +428,19 @@ public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int nu
 	}
 
 	// Re-broadcast to clients that still need it.
-	if(GetEngineVersion() == Engine_CSGO)
-	{
-		float vTemp[3];
-		TE_Start("Shotgun Shot");
-		TE_ReadVector("m_vecOrigin", vTemp);
-		TE_WriteVector("m_vecOrigin", vTemp);
-		TE_WriteFloat("m_vecAngles[0]", TE_ReadFloat("m_vecAngles[0]"));
-		TE_WriteFloat("m_vecAngles[1]", TE_ReadFloat("m_vecAngles[1]"));
-		TE_WriteNum("m_weapon", TE_ReadNum("m_weapon"));
-		TE_WriteNum("m_iMode", TE_ReadNum("m_iMode"));
-		TE_WriteNum("m_iSeed", TE_ReadNum("m_iSeed"));
-		TE_WriteNum("m_iPlayer", TE_ReadNum("m_iPlayer"));
-		TE_WriteFloat("m_fInaccuracy", TE_ReadFloat("m_fInaccuracy"));
-		TE_WriteFloat("m_fSpread", TE_ReadFloat("m_fSpread"));
-		TE_Send(newClients, newTotal, delay);
-	}
-	else
-	{
-		float vTemp[3];
-		TE_Start("Shotgun Shot");
-		TE_ReadVector("m_vecOrigin", vTemp);
-		TE_WriteVector("m_vecOrigin", vTemp);
-		TE_WriteFloat("m_vecAngles[0]", TE_ReadFloat("m_vecAngles[0]"));
-		TE_WriteFloat("m_vecAngles[1]", TE_ReadFloat("m_vecAngles[1]"));
-		TE_WriteNum("m_iWeaponID", TE_ReadNum("m_iWeaponID"));
-		TE_WriteNum("m_iMode", TE_ReadNum("m_iMode"));
-		TE_WriteNum("m_iSeed", TE_ReadNum("m_iSeed"));
-		TE_WriteNum("m_iPlayer", TE_ReadNum("m_iPlayer"));
-		TE_WriteFloat("m_fInaccuracy", TE_ReadFloat("m_fInaccuracy"));
-		TE_WriteFloat("m_fSpread", TE_ReadFloat("m_fSpread"));
-		TE_Send(newClients, newTotal, delay);
-	}
+	float vTemp[3];
+	TE_Start("Shotgun Shot");
+	TE_ReadVector("m_vecOrigin", vTemp);
+	TE_WriteVector("m_vecOrigin", vTemp);
+	TE_WriteFloat("m_vecAngles[0]", TE_ReadFloat("m_vecAngles[0]"));
+	TE_WriteFloat("m_vecAngles[1]", TE_ReadFloat("m_vecAngles[1]"));
+	TE_WriteNum("m_iWeaponID", TE_ReadNum("m_iWeaponID"));
+	TE_WriteNum("m_iMode", TE_ReadNum("m_iMode"));
+	TE_WriteNum("m_iSeed", TE_ReadNum("m_iSeed"));
+	TE_WriteNum("m_iPlayer", TE_ReadNum("m_iPlayer"));
+	TE_WriteFloat("m_fInaccuracy", TE_ReadFloat("m_fInaccuracy"));
+	TE_WriteFloat("m_fSpread", TE_ReadFloat("m_fSpread"));
+	TE_Send(newClients, newTotal, delay);
 
 	return Plugin_Stop;
 }
@@ -525,51 +451,6 @@ public Action Hook_ReloadEffect_CSS(UserMsg msg_id, BfRead msg, const int[] play
 		return Plugin_Continue;
 
 	int client = msg.ReadShort();
-
-	// Check which clients need to be excluded.
-	int[] newClients = new int[playersNum];
-	int newTotal = 0;
-
-	for(int i = 0; i < playersNum; i++)
-	{
-		int client_ = players[i];
-		if(IsClientInGame(client_) && !g_bStopWeaponSounds[client_])
-		{
-			newClients[newTotal++] = client_;
-		}
-	}
-
-	if(newTotal == playersNum)
-	{
-		// No clients were excluded.
-		return Plugin_Continue;
-	}
-	else if(newTotal == 0)
-	{
-		// All clients were excluded and there is no need to broadcast.
-		return Plugin_Handled;
-	}
-
-	DataPack pack = new DataPack();
-	pack.WriteCell(client);
-	pack.WriteCell(newTotal);
-
-	for(int i = 0; i < newTotal; i++)
-	{
-		pack.WriteCell(newClients[i]);
-	}
-
-	RequestFrame(OnReloadEffect, pack);
-
-	return Plugin_Handled;
-}
-
-public Action Hook_ReloadEffect_CSGO(UserMsg msg_id, Protobuf msg, const int[] players, int playersNum, bool reliable, bool init)
-{
-	if(!g_bStopWeaponSoundsHooked)
-		return Plugin_Continue;
-
-	int client = PbReadInt(msg, "entidx");
 
 	// Check which clients need to be excluded.
 	int[] newClients = new int[playersNum];
@@ -645,7 +526,8 @@ public void OnReloadEffect(DataPack pack)
 public Action Hook_AmbientSound(char sample[PLATFORM_MAX_PATH], int &entity, float &volume, int &level, int &pitch, float pos[3], int &flags, float &delay)
 {
 	// Are we playing music?
-	if(!strncmp(sample, "music", 5, false) && !strncmp(sample, "#", 1, false))
+	//if(!strncmp(sample, "music", 5, false) && !strncmp(sample, "#", 1, false))
+	if(strncmp(sample, "music", 5, false) != 0 && strncmp(sample, "#", 1, false) != 0)
 		return Plugin_Continue;
 
 	char sEntity[16];
