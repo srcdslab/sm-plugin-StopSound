@@ -23,7 +23,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.1.1",
+	version = "3.1.2",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -215,6 +215,15 @@ public void OnClientCookiesCached(int client)
 	}
 	else
 		g_bStopMapMusic[client] = false;
+}
+
+public void OnClientPostAdminCheck(int client)
+{
+	if (IsFakeClient(client))
+		return;
+
+	if (AreClientCookiesCached(client))
+		OnClientCookiesCached(client);
 }
 
 public void OnClientDisconnect(int client)
@@ -526,8 +535,7 @@ public void OnReloadEffect(DataPack pack)
 public Action Hook_AmbientSound(char sample[PLATFORM_MAX_PATH], int &entity, float &volume, int &level, int &pitch, float pos[3], int &flags, float &delay)
 {
 	// Are we playing music?
-	//if(!strncmp(sample, "music", 5, false) && !strncmp(sample, "#", 1, false))
-	if(strncmp(sample, "music", 5, false) != 0 && strncmp(sample, "#", 1, false) != 0)
+	if(!strncmp(sample, "music", 5, false) && !strncmp(sample, "#", 1, false))
 		return Plugin_Continue;
 
 	char sEntity[16];
