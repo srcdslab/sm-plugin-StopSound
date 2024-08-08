@@ -12,6 +12,7 @@ bool g_bStopMapMusic[MAXPLAYERS+1] = { false, ... };
 
 bool g_bStopWeaponSoundsHooked = false;
 bool g_bStopMapMusicHooked = false;
+bool g_bLate = false;
 
 StringMap g_MapMusic;
 
@@ -23,7 +24,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.1.1",
+	version = "3.1.2",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -34,6 +35,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 		strcopy(error, err_max, "This plugin supports only CS:S!");
 		return APLRes_Failure;
 	}
+
+	g_bLate = late;
 
 	return APLRes_Success;
 }
@@ -79,12 +82,14 @@ public void OnPluginStart()
 		HookUserMessage(ReloadEffect, Hook_ReloadEffect_CSS, true);
 	}
 
-	// Late load
-	for(int client = 1; client <= MaxClients; client++)
+	if (g_bLate)
 	{
-		if(IsClientInGame(client) && AreClientCookiesCached(client))
+		for(int i = 1; i <= MaxClients; i++)
 		{
-			OnClientCookiesCached(client);
+			if(!IsClientInGame(i) || IsFakeClient(i) || !AreClientCookiesCached(i))
+				continue;
+
+			OnClientCookiesCached(i);
 		}
 	}
 }
@@ -526,8 +531,7 @@ public void OnReloadEffect(DataPack pack)
 public Action Hook_AmbientSound(char sample[PLATFORM_MAX_PATH], int &entity, float &volume, int &level, int &pitch, float pos[3], int &flags, float &delay)
 {
 	// Are we playing music?
-	//if(!strncmp(sample, "music", 5, false) && !strncmp(sample, "#", 1, false))
-	if(strncmp(sample, "music", 5, false) != 0 && strncmp(sample, "#", 1, false) != 0)
+	if(!strncmp(sample, "music", 5, false) && !strncmp(sample, "#", 1, false))
 		return Plugin_Continue;
 
 	char sEntity[16];
