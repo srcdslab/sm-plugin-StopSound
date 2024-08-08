@@ -12,6 +12,7 @@ bool g_bStopMapMusic[MAXPLAYERS+1] = { false, ... };
 
 bool g_bStopWeaponSoundsHooked = false;
 bool g_bStopMapMusicHooked = false;
+bool g_bLate = false;
 
 StringMap g_MapMusic;
 
@@ -34,6 +35,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 		strcopy(error, err_max, "This plugin supports only CS:S!");
 		return APLRes_Failure;
 	}
+
+	g_bLate = late;
 
 	return APLRes_Success;
 }
@@ -79,12 +82,14 @@ public void OnPluginStart()
 		HookUserMessage(ReloadEffect, Hook_ReloadEffect_CSS, true);
 	}
 
-	// Late load
-	for(int client = 1; client <= MaxClients; client++)
+	if (g_bLate)
 	{
-		if(IsClientInGame(client) && AreClientCookiesCached(client))
+		for(int i = 1; i <= MaxClients; i++)
 		{
-			OnClientCookiesCached(client);
+			if(!IsClientInGame(i) || IsFakeClient(i) || !AreClientCookiesCached(i))
+				continue;
+
+			OnClientCookiesCached(i);
 		}
 	}
 }
@@ -215,15 +220,6 @@ public void OnClientCookiesCached(int client)
 	}
 	else
 		g_bStopMapMusic[client] = false;
-}
-
-public void OnClientPostAdminCheck(int client)
-{
-	if (IsFakeClient(client))
-		return;
-
-	if (AreClientCookiesCached(client))
-		OnClientCookiesCached(client);
 }
 
 public void OnClientDisconnect(int client)
