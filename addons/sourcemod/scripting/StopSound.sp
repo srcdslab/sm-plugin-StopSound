@@ -501,10 +501,10 @@ public void OnReloadEffect(DataPack pack)
 	int client = pack.ReadCell();
 
 	if(client <= 0 || client > MaxClients || !IsClientInGame(client))
-    {
-        delete pack;
-        return;
-    }
+	{
+		delete pack;
+		return;
+	}
 
 	int newTotal = pack.ReadCell();
 
@@ -525,7 +525,7 @@ public void OnReloadEffect(DataPack pack)
 
 	// All clients were excluded and there is no need to broadcast.
 	if(playersNum == 0)
-        return;
+		return;
 
 	Handle ReloadEffect = StartMessage("ReloadEffect", players, playersNum, USERMSG_RELIABLE | USERMSG_BLOCKHOOKS);
 	if(GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available && GetUserMessageType() == UM_Protobuf)
