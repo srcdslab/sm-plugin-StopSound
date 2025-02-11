@@ -24,7 +24,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.1.2",
+	version = "3.1.3",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -415,7 +415,7 @@ public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int nu
 
 	for(int i = 0; i < numClients; i++)
 	{
-		if(!g_bStopWeaponSounds[Players[i]])
+		if(Players[i] > 0 && Players[i] <= MaxClients && IsClientInGame(Players[i]) && !g_bStopWeaponSounds[Players[i]])
 		{
 			newClients[newTotal++] = Players[i];
 		}
@@ -464,7 +464,7 @@ public Action Hook_ReloadEffect_CSS(UserMsg msg_id, BfRead msg, const int[] play
 	for(int i = 0; i < playersNum; i++)
 	{
 		int client_ = players[i];
-		if(IsClientInGame(client_) && !g_bStopWeaponSounds[client_])
+		if(client_ > 0 && client_ <= MaxClients && IsClientInGame(client_) && !g_bStopWeaponSounds[client_])
 		{
 			newClients[newTotal++] = client_;
 		}
@@ -499,6 +499,13 @@ public void OnReloadEffect(DataPack pack)
 {
 	pack.Reset();
 	int client = pack.ReadCell();
+
+	if(client <= 0 || client > MaxClients || !IsClientInGame(client))
+	{
+		delete pack;
+		return;
+	}
+
 	int newTotal = pack.ReadCell();
 
 	int[] players = new int[newTotal];
@@ -507,13 +514,18 @@ public void OnReloadEffect(DataPack pack)
 	for(int i = 0; i < newTotal; i++)
 	{
 		int client_ = pack.ReadCell();
-		if(IsClientInGame(client_))
+		// In case of invalid client, skip it.
+		if(client_ > 0 && client_ <= MaxClients && IsClientInGame(client_))
 		{
 			players[playersNum++] = client_;
 		}
 	}
 
 	CloseHandle(pack);
+
+	// All clients were excluded and there is no need to broadcast.
+	if(playersNum == 0)
+		return;
 
 	Handle ReloadEffect = StartMessage("ReloadEffect", players, playersNum, USERMSG_RELIABLE | USERMSG_BLOCKHOOKS);
 	if(GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available && GetUserMessageType() == UM_Protobuf)
