@@ -17,20 +17,19 @@ bool g_bLate = false;
 StringMap g_MapMusic;
 
 Handle g_hCookieStopSound = null;
-Handle g_hCookieStopMapMusic = null;
 
 public Plugin myinfo =
 {
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.1.3",
+	version = "3.2.0",
 	url = "http://www.sourcemod.net/"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-	if(GetEngineVersion() != Engine_CSS)
+	if (GetEngineVersion() != Engine_CSS)
 	{
 		strcopy(error, err_max, "This plugin supports only CS:S!");
 		return APLRes_Failure;
@@ -64,9 +63,8 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_stopmusic", Command_StopMusic, "Toggle hearing map music");
 	RegConsoleCmd("sm_music", Command_StopMusic, "Toggle hearing map music");
 
-	// Cookies
-	g_hCookieStopSound = RegClientCookie("weaponsound_blocked", "Are weapon sounds enabled", CookieAccess_Protected);
-	g_hCookieStopMapMusic = RegClientCookie("mapmusic_blocked", "Are map music enabled", CookieAccess_Protected);
+	// Single cookie for both settings
+	g_hCookieStopSound = RegClientCookie("sound_settings", "Sound settings (weapon sounds : map music)", CookieAccess_Protected);
 
 	SetCookieMenuItem(CookieMenuHandler_StopSounds, 0, "Stop sounds");
 
@@ -77,16 +75,16 @@ public void OnPluginStart()
 	// Weapon sounds will be caught here.
 	AddNormalSoundHook(Hook_NormalSound_CSS);
 
-	if(ReloadEffect != INVALID_MESSAGE_ID)
+	if (ReloadEffect != INVALID_MESSAGE_ID)
 	{
 		HookUserMessage(ReloadEffect, Hook_ReloadEffect_CSS, true);
 	}
 
 	if (g_bLate)
 	{
-		for(int i = 1; i <= MaxClients; i++)
+		for (int i = 1; i <= MaxClients; i++)
 		{
-			if(!IsClientInGame(i) || IsFakeClient(i) || !AreClientCookiesCached(i))
+			if (!IsClientInGame(i) || IsFakeClient(i) || !AreClientCookiesCached(i))
 				continue;
 
 			OnClientCookiesCached(i);
@@ -96,9 +94,9 @@ public void OnPluginStart()
 
 public void OnPluginEnd()
 {
-	for(int client = 1; client <= MaxClients; client++)
+	for (int client = 1; client <= MaxClients; client++)
 	{
-		if(IsClientInGame(client))
+		if (IsClientInGame(client))
 		{
 			OnClientDisconnect(client);
 		}
@@ -116,7 +114,7 @@ public void OnPluginEnd()
 	// Remove game-specific
 	RemoveNormalSoundHook(Hook_NormalSound_CSS);
 
-	if(ReloadEffect != INVALID_MESSAGE_ID)
+	if (ReloadEffect != INVALID_MESSAGE_ID)
 		UnhookUserMessage(ReloadEffect, Hook_ReloadEffect_CSS, true);
 }
 
@@ -134,19 +132,19 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 
-	if(!IsClientInGame(client) || GetClientTeam(client) <= CS_TEAM_SPECTATOR)
+	if (!IsClientInGame(client) || GetClientTeam(client) <= CS_TEAM_SPECTATOR)
 		return;
 
-	if(g_bStopWeaponSounds[client])
+	if (g_bStopWeaponSounds[client])
 		CPrintToChat(client, "%t %t", "Chat Prefix", "Weapon sounds disabled");
 
-	if(g_bStopMapMusic[client])
+	if (g_bStopMapMusic[client])
 		CPrintToChat(client, "%t %t", "Chat Prefix", "Map music disabled");
 }
 
 public Action Command_StopSound(int client, int args)
 {
-	if(client == 0)
+	if (client == 0)
 	{
 		ReplyToCommand(client, "[SM] Cannot use command from server console.");
 		return Plugin_Handled;
@@ -155,23 +153,22 @@ public Action Command_StopSound(int client, int args)
 	g_bStopWeaponSounds[client] = !g_bStopWeaponSounds[client];
 	CheckWeaponSoundsHooks();
 
-	if(g_bStopWeaponSounds[client])
+	if (g_bStopWeaponSounds[client])
 	{
-		SetClientCookie(client, g_hCookieStopSound, "1");
 		CReplyToCommand(client, "%t %t", "Chat Prefix", "Weapon sounds disabled");
 	}
 	else
 	{
-		SetClientCookie(client, g_hCookieStopSound, "");
 		CReplyToCommand(client, "%t %t", "Chat Prefix", "Weapon sounds enabled");
 	}
 
+	SaveClientSettings(client);
 	return Plugin_Handled;
 }
 
 public Action Command_StopMusic(int client, int args)
 {
-	if(client == 0)
+	if (client == 0)
 	{
 		ReplyToCommand(client, "[SM] Cannot use command from server console.");
 		return Plugin_Handled;
@@ -180,46 +177,50 @@ public Action Command_StopMusic(int client, int args)
 	g_bStopMapMusic[client] = !g_bStopMapMusic[client];
 	CheckMapMusicHooks();
 
-	if(g_bStopMapMusic[client])
+	if (g_bStopMapMusic[client])
 	{
-		SetClientCookie(client, g_hCookieStopMapMusic, "1");
 		CReplyToCommand(client, "%t %t", "Chat Prefix", "Map music disabled");
 		StopMapMusic(client);
 	}
 	else
 	{
-		SetClientCookie(client, g_hCookieStopMapMusic, "");
 		CReplyToCommand(client, "%t %t", "Chat Prefix", "Map music enabled");
 	}
 
+	SaveClientSettings(client);
 	return Plugin_Handled;
+}
+
+void SaveClientSettings(int client)
+{
+	char sBuffer[8];
+	Format(sBuffer, sizeof(sBuffer), "%d%d", g_bStopWeaponSounds[client] ? 1 : 0, g_bStopMapMusic[client] ? 1 : 0);
+	SetClientCookie(client, g_hCookieStopSound, sBuffer);
 }
 
 public void OnClientCookiesCached(int client)
 {
-	char sBuffer[2];
-
-	// Weapon Sounds cookie
+	char sBuffer[8];
 	GetClientCookie(client, g_hCookieStopSound, sBuffer, sizeof(sBuffer));
 
-	if(sBuffer[0] != '\0')
+	// Parse the cookie format: %d%d (weapon sounds, map music)
+	if (sBuffer[0] != '\0' && strlen(sBuffer) >= 2)
 	{
-		g_bStopWeaponSounds[client] = true;
-		g_bStopWeaponSoundsHooked = true;
+		g_bStopWeaponSounds[client] = (sBuffer[0] == '1');
+		g_bStopMapMusic[client] = (sBuffer[1] == '1');
 	}
 	else
+	{
+		// Default values if cookie is empty or invalid
 		g_bStopWeaponSounds[client] = false;
-
-	// Map Music cookie
-	GetClientCookie(client, g_hCookieStopMapMusic, sBuffer, sizeof(sBuffer));
-
-	if(sBuffer[0] != '\0')
-	{
-		g_bStopMapMusic[client] = true;
-		g_bStopMapMusicHooked = true;
-	}
-	else
 		g_bStopMapMusic[client] = false;
+	}
+
+	// Update hook states
+	if (g_bStopWeaponSounds[client])
+		g_bStopWeaponSoundsHooked = true;
+	if (g_bStopMapMusic[client])
+		g_bStopMapMusicHooked = true;
 }
 
 public void OnClientDisconnect(int client)
@@ -235,9 +236,9 @@ void CheckWeaponSoundsHooks()
 {
 	bool bShouldHook = false;
 
-	for(int i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
-		if(g_bStopWeaponSounds[i])
+		if (g_bStopWeaponSounds[i])
 		{
 			bShouldHook = true;
 			break;
@@ -252,9 +253,9 @@ void CheckMapMusicHooks()
 {
 	bool bShouldHook = false;
 
-	for(int i = 1; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++)
 	{
-		if(g_bStopMapMusic[i])
+		if (g_bStopMapMusic[i])
 		{
 			bShouldHook = true;
 			break;
@@ -273,11 +274,11 @@ void StopMapMusic(int client)
 	char sSample[PLATFORM_MAX_PATH];
 
 	StringMapSnapshot MapMusicSnap = g_MapMusic.Snapshot();
-	for(int i = 0; i < MapMusicSnap.Length; i++)
+	for (int i = 0; i < MapMusicSnap.Length; i++)
 	{
 		MapMusicSnap.GetKey(i, sEntity, sizeof(sEntity));
 
-		if((entity = EntRefToEntIndex(StringToInt(sEntity))) == INVALID_ENT_REFERENCE)
+		if ((entity = EntRefToEntIndex(StringToInt(sEntity))) == INVALID_ENT_REFERENCE)
 		{
 			g_MapMusic.Remove(sEntity);
 			continue;
@@ -292,11 +293,11 @@ void StopMapMusic(int client)
 
 public void CookieMenuHandler_StopSounds(int client, CookieMenuAction action, any info, char[] buffer, int maxlen)
 {
-	if(action == CookieMenuAction_DisplayOption)
+	if (action == CookieMenuAction_DisplayOption)
 	{
 		Format(buffer, maxlen, "%T", "Cookie Menu Stop Sounds", client);
 	}
-	else if(action == CookieMenuAction_SelectOption)
+	else if (action == CookieMenuAction_SelectOption)
 	{
 		ShowStopSoundsSettingsMenu(client);
 	}
@@ -322,50 +323,47 @@ void ShowStopSoundsSettingsMenu(int client)
 
 public int MenuHandler_StopSoundsSettings(Menu menu, MenuAction action, int client, int selection)
 {
-	if(action == MenuAction_Cancel)
+	if (action == MenuAction_Cancel)
 	{
 		ShowCookieMenu(client);
 	}
-	else if(action == MenuAction_Select)
+	else if (action == MenuAction_Select)
 	{
-		if(selection == 0)
+		if (selection == 0)
 		{
 			g_bStopWeaponSounds[client] = !g_bStopWeaponSounds[client];
 			CheckWeaponSoundsHooks();
 
-			if(g_bStopWeaponSounds[client])
+			if (g_bStopWeaponSounds[client])
 			{
-				SetClientCookie(client, g_hCookieStopSound, "1");
 				CPrintToChat(client, "%t %t", "Chat Prefix", "Weapon sounds disabled");
 			}
 			else
 			{
-				SetClientCookie(client, g_hCookieStopSound, "");
 				CPrintToChat(client, "%t %t", "Chat Prefix", "Weapon sounds enabled");
 			}
-
 		}
-		else if(selection == 1)
+		else if (selection == 1)
 		{
 			g_bStopMapMusic[client] = !g_bStopMapMusic[client];
 			CheckMapMusicHooks();
 
-			if(g_bStopMapMusic[client])
+			if (g_bStopMapMusic[client])
 			{
-				SetClientCookie(client, g_hCookieStopMapMusic, "1");
 				CPrintToChat(client, "%t %t", "Chat Prefix", "Map music disabled");
 				StopMapMusic(client);
 			}
 			else
 			{
-				SetClientCookie(client, g_hCookieStopMapMusic, "");
 				CPrintToChat(client, "%t %t", "Chat Prefix", "Map music enabled");
 			}
+
 		}
 
+		SaveClientSettings(client);
 		ShowStopSoundsSettingsMenu(client);
 	}
-	else if(action == MenuAction_End)
+	else if (action == MenuAction_End)
 	{
 		delete menu;
 	}
@@ -376,11 +374,11 @@ public Action Hook_NormalSound_CSS(int clients[MAXPLAYERS], int &numClients, cha
 	  int &entity, int &channel, float &volume, int &level, int &pitch, int &flags,
 	  char soundEntry[PLATFORM_MAX_PATH], int &seed)
 {
-	if(!g_bStopWeaponSoundsHooked)
+	if (!g_bStopWeaponSoundsHooked)
 		return Plugin_Continue;
 
 	// Ignore non-weapon sounds.
-	if(channel != SNDCHAN_WEAPON &&
+	if (channel != SNDCHAN_WEAPON &&
 		!(channel == SNDCHAN_AUTO && strncmp(sample, "physics/flesh", 13) == 0) &&
 		!(channel == SNDCHAN_VOICE && StrContains(sample, "player/headshot", true) != -1))
 	{
@@ -388,10 +386,10 @@ public Action Hook_NormalSound_CSS(int clients[MAXPLAYERS], int &numClients, cha
 	}
 
 	int j = 0;
-	for(int i = 0; i < numClients; i++)
+	for (int i = 0; i < numClients; i++)
 	{
 		int client = clients[i];
-		if(!g_bStopWeaponSounds[client] && IsClientInGame(client))
+		if (!g_bStopWeaponSounds[client] && IsClientInGame(client))
 		{
 			// Keep client.
 			clients[j] = clients[i];
@@ -406,27 +404,27 @@ public Action Hook_NormalSound_CSS(int clients[MAXPLAYERS], int &numClients, cha
 
 public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int numClients, float delay)
 {
-	if(!g_bStopWeaponSoundsHooked)
+	if (!g_bStopWeaponSoundsHooked)
 		return Plugin_Continue;
 
 	// Check which clients need to be excluded.
 	int[] newClients = new int[numClients];
 	int newTotal = 0;
 
-	for(int i = 0; i < numClients; i++)
+	for (int i = 0; i < numClients; i++)
 	{
-		if(Players[i] > 0 && Players[i] <= MaxClients && IsClientInGame(Players[i]) && !g_bStopWeaponSounds[Players[i]])
+		if (Players[i] > 0 && Players[i] <= MaxClients && IsClientInGame(Players[i]) && !g_bStopWeaponSounds[Players[i]])
 		{
 			newClients[newTotal++] = Players[i];
 		}
 	}
 
-	if(newTotal == numClients)
+	if (newTotal == numClients)
 	{
 		// No clients were excluded.
 		return Plugin_Continue;
 	}
-	else if(newTotal == 0)
+	else if (newTotal == 0)
 	{
 		// All clients were excluded and there is no need to broadcast.
 		return Plugin_Stop;
@@ -452,7 +450,7 @@ public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int nu
 
 public Action Hook_ReloadEffect_CSS(UserMsg msg_id, BfRead msg, const int[] players, int playersNum, bool reliable, bool init)
 {
-	if(!g_bStopWeaponSoundsHooked)
+	if (!g_bStopWeaponSoundsHooked)
 		return Plugin_Continue;
 
 	int client = msg.ReadShort();
@@ -461,21 +459,21 @@ public Action Hook_ReloadEffect_CSS(UserMsg msg_id, BfRead msg, const int[] play
 	int[] newClients = new int[playersNum];
 	int newTotal = 0;
 
-	for(int i = 0; i < playersNum; i++)
+	for (int i = 0; i < playersNum; i++)
 	{
 		int client_ = players[i];
-		if(client_ > 0 && client_ <= MaxClients && IsClientInGame(client_) && !g_bStopWeaponSounds[client_])
+		if (client_ > 0 && client_ <= MaxClients && IsClientInGame(client_) && !g_bStopWeaponSounds[client_])
 		{
 			newClients[newTotal++] = client_;
 		}
 	}
 
-	if(newTotal == playersNum)
+	if (newTotal == playersNum)
 	{
 		// No clients were excluded.
 		return Plugin_Continue;
 	}
-	else if(newTotal == 0)
+	else if (newTotal == 0)
 	{
 		// All clients were excluded and there is no need to broadcast.
 		return Plugin_Handled;
@@ -485,7 +483,7 @@ public Action Hook_ReloadEffect_CSS(UserMsg msg_id, BfRead msg, const int[] play
 	pack.WriteCell(client);
 	pack.WriteCell(newTotal);
 
-	for(int i = 0; i < newTotal; i++)
+	for (int i = 0; i < newTotal; i++)
 	{
 		pack.WriteCell(newClients[i]);
 	}
@@ -500,7 +498,7 @@ public void OnReloadEffect(DataPack pack)
 	pack.Reset();
 	int client = pack.ReadCell();
 
-	if(client <= 0 || client > MaxClients || !IsClientInGame(client))
+	if (client <= 0 || client > MaxClients || !IsClientInGame(client))
 	{
 		delete pack;
 		return;
@@ -511,11 +509,11 @@ public void OnReloadEffect(DataPack pack)
 	int[] players = new int[newTotal];
 	int playersNum = 0;
 
-	for(int i = 0; i < newTotal; i++)
+	for (int i = 0; i < newTotal; i++)
 	{
 		int client_ = pack.ReadCell();
 		// In case of invalid client, skip it.
-		if(client_ > 0 && client_ <= MaxClients && IsClientInGame(client_))
+		if (client_ > 0 && client_ <= MaxClients && IsClientInGame(client_))
 		{
 			players[playersNum++] = client_;
 		}
@@ -524,11 +522,11 @@ public void OnReloadEffect(DataPack pack)
 	CloseHandle(pack);
 
 	// All clients were excluded and there is no need to broadcast.
-	if(playersNum == 0)
+	if (playersNum == 0)
 		return;
 
 	Handle ReloadEffect = StartMessage("ReloadEffect", players, playersNum, USERMSG_RELIABLE | USERMSG_BLOCKHOOKS);
-	if(GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available && GetUserMessageType() == UM_Protobuf)
+	if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available && GetUserMessageType() == UM_Protobuf)
 	{
 		PbSetInt(ReloadEffect, "entidx", client);
 	}
@@ -543,7 +541,7 @@ public void OnReloadEffect(DataPack pack)
 public Action Hook_AmbientSound(char sample[PLATFORM_MAX_PATH], int &entity, float &volume, int &level, int &pitch, float pos[3], int &flags, float &delay)
 {
 	// Are we playing music?
-	if(!strncmp(sample, "music", 5, false) && !strncmp(sample, "#", 1, false))
+	if (!strncmp(sample, "music", 5, false) && !strncmp(sample, "#", 1, false))
 		return Plugin_Continue;
 
 	char sEntity[16];
@@ -551,7 +549,7 @@ public Action Hook_AmbientSound(char sample[PLATFORM_MAX_PATH], int &entity, flo
 
 	g_MapMusic.SetString(sEntity, sample, true);
 
-	if(!g_bStopMapMusicHooked)
+	if (!g_bStopMapMusicHooked)
 		return Plugin_Continue;
 
 	switch(flags)
@@ -559,7 +557,7 @@ public Action Hook_AmbientSound(char sample[PLATFORM_MAX_PATH], int &entity, flo
 		case(SND_NOFLAGS):
 		{
 			// Starting sound..
-			for(int client = 1; client <= MaxClients; client++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
 				if (!IsClientInGame(client) || g_bStopMapMusic[client])
 					continue;
@@ -574,7 +572,7 @@ public Action Hook_AmbientSound(char sample[PLATFORM_MAX_PATH], int &entity, flo
 		default:
 		{
 			// Nothing special going on.. Pass it through..
-			for(int client = 1; client <= MaxClients; client++)
+			for (int client = 1; client <= MaxClients; client++)
 			{
 				if (!IsClientInGame(client) || g_bStopMapMusic[client])
 					continue;
