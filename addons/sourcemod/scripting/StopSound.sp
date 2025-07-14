@@ -123,6 +123,14 @@ public void OnMapStart()
 	g_MapMusic.Clear();
 }
 
+public void OnMapEnd()
+{
+	if (g_MapMusic != null)
+		delete g_MapMusic;
+
+	g_MapMusic = new StringMap();
+}
+
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
 	g_MapMusic.Clear();
