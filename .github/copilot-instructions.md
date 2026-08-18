@@ -16,9 +16,9 @@ This repository contains a SourceMod plugin for Counter-Strike: Source that allo
 - **Language**: SourcePawn (.sp files)
 - **Platform**: SourceMod 1.12+ (minimum required version)
 - **Target Game**: Counter-Strike: Source only
-- **Build Tool**: SourceKnight (configured via `sourceknight.yaml`)
+- **Build Tool**: Native GitHub Actions (spcomp via `rumblefrog/setup-sp`, see `.github/workflows/ci.yml`)
 - **Dependencies**:
-  - SourceMod 1.11.0-git6917+ (build dependency)
+  - SourceMod 1.12.x (build dependency)
   - MultiColors plugin (for colored chat messages)
 
 ## Project Structure
@@ -34,8 +34,6 @@ addons/sourcemod/
 ├── workflows/
 │   └── ci.yml               # GitHub Actions CI/CD pipeline
 └── dependabot.yml          # Dependency updates
-
-sourceknight.yaml           # Build configuration
 ```
 
 ## Code Style & Standards
@@ -71,17 +69,11 @@ sourceknight.yaml           # Build configuration
 
 ## Build Process
 
-The project uses SourceKnight for building:
+The project builds via native GitHub Actions (`.github/workflows/ci.yml`):
 
-1. **Local Development**: Install SourceKnight and run `sourceknight build`
-2. **CI/CD**: GitHub Actions automatically builds on push/PR
-3. **Dependencies**: Auto-downloaded via SourceKnight configuration
-4. **Output**: Compiled `.smx` files in `addons/sourcemod/plugins/`
-
-### Build Configuration (`sourceknight.yaml`)
-- Downloads SourceMod 1.11.0-git6917 build tools
-- Pulls MultiColors dependency from GitHub
-- Targets: StopSound plugin compilation
+1. **Local Development**: Compile manually with `spcomp` (install SourceMod/MultiColors includes yourself), or just open a PR and let CI build it
+2. **CI/CD**: GitHub Actions installs the SourcePawn compiler (`rumblefrog/setup-sp`, SourceMod 1.12.x), clones the MultiColors include, and compiles on push/PR
+3. **Output**: Compiled `.smx` files in `addons/sourcemod/plugins/`, packaged and uploaded as a build artifact; pushes to `master`/`main` also retag a rolling `latest` release
 
 ## Key Architecture Patterns
 
@@ -186,15 +178,15 @@ RegConsoleCmd("sm_debug_hooks", Command_DebugHooks);
 - Supports color tags from MultiColors
 - When adding new phrases, maintain both EN/RU translations
 
-### `sourceknight.yaml`
-- Build configuration defining dependencies and build targets
+### `.github/workflows/ci.yml`
+- GitHub Actions build/tag/release pipeline
 - Modify carefully as it affects CI/CD pipeline
 - Version updates should be coordinated with SourceMod compatibility
 
 ## Getting Started for New Contributors
 
 1. **Understand SourceMod**: Familiarize yourself with SourceMod API and SourcePawn syntax
-2. **Set up environment**: Install SourceKnight or use VS Code with SourcePawn extension
+2. **Set up environment**: Use VS Code with the SourcePawn extension, or rely on the GitHub Actions CI to build
 3. **Test server**: Always test changes on a CS:S development server
 4. **Review existing code**: Understand the hook patterns and client state management
 5. **Start small**: Begin with translation updates or minor feature additions before major changes
