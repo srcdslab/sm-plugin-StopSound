@@ -18,6 +18,19 @@
 		"ru"	"Звуки стрельбы {darkred}отключены{default}!"
 	}
 
+	"Weapon sounds volume"
+	{
+		"#format"	"{1:d}"
+		"en"	"Weapon sounds volume set to {green}{1}%%{default}!"
+		"ru"	"Громкость звуков стрельбы: {green}{1}%%{default}!"
+	}
+
+	"Weapon volume usage"
+	{
+		"en"	"Usage: {green}sm_weaponvolume <0-100>{default}"
+		"ru"	"Использование: {green}sm_weaponvolume <0-100>{default}"
+	}
+
 	"Map music enabled"
 	{
 		"en"	"Map music {green}enabled{default}!"
@@ -64,5 +77,12 @@
 	{
 		"en"	": Enabled"
 		"ru"	" [Включено]"
+	}
+
+	"Volume Value"
+	{
+		"#format"	"{1:d}"
+		"en"	": {1}%%"
+		"ru"	" [{1}%%]"
 	}
 }
