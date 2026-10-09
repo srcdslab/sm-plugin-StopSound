@@ -7,10 +7,56 @@
 #include <clientprefs>
 #include <multicolors>
 
-bool g_bStopWeaponSounds[MAXPLAYERS+1] = { false, ... };
+#define WEAPON_VOLUME_NORMAL 100
+
+// Steps cycled through by the settings menu (0 = weapon sounds disabled).
+int g_iWeaponVolumeSteps[] = { 100, 75, 50, 25, 10, 0 };
+
+// CS:S shoot sounds indexed by CSWeaponID (game/shared/cstrike/cs_weapon_parse.h).
+char g_sWeaponShootSounds[][] =
+{
+	"",							// WEAPON_NONE
+	"Weapon_P228.Single",
+	"Weapon_Glock.Single",
+	"Weapon_Scout.Single",
+	"",							// WEAPON_HEGRENADE
+	"Weapon_XM1014.Single",
+	"",							// WEAPON_C4
+	"Weapon_MAC10.Single",
+	"Weapon_AUG.Single",
+	"",							// WEAPON_SMOKEGRENADE
+	"Weapon_ELITE.Single",
+	"Weapon_FiveSeven.Single",
+	"Weapon_UMP45.Single",
+	"Weapon_SG550.Single",
+	"Weapon_Galil.Single",
+	"Weapon_FAMAS.Single",
+	"Weapon_USP.Single",
+	"Weapon_AWP.Single",
+	"Weapon_MP5Navy.Single",
+	"Weapon_M249.Single",
+	"Weapon_M3.Single",
+	"Weapon_M4A1.Single",
+	"Weapon_TMP.Single",
+	"Weapon_G3SG1.Single",
+	"",							// WEAPON_FLASHBANG
+	"Weapon_DEagle.Single",
+	"Weapon_SG552.Single",
+	"Weapon_AK47.Single",
+	"",							// WEAPON_KNIFE
+	"Weapon_P90.Single"
+};
+
+#define CSS_WEAPON_USP 16
+#define CSS_WEAPON_M4A1 21
+#define CSS_SECONDARY_MODE 1
+
+// Weapon sounds volume in percent: 100 = normal, 0 = disabled.
+int g_iWeaponVolume[MAXPLAYERS+1] = { WEAPON_VOLUME_NORMAL, ... };
 bool g_bStopMapMusic[MAXPLAYERS+1] = { false, ... };
 
 bool g_bStopWeaponSoundsHooked = false;
+bool g_bEmittingScaledSound = false;
 bool g_bStopMapMusicHooked = false;
 bool g_bLate = false;
 
@@ -23,7 +69,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.2.1",
+	version = "3.3.0",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -62,9 +108,11 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_sound", Command_StopSound, "Toggle hearing weapon sounds");
 	RegConsoleCmd("sm_stopmusic", Command_StopMusic, "Toggle hearing map music");
 	RegConsoleCmd("sm_music", Command_StopMusic, "Toggle hearing map music");
+	RegConsoleCmd("sm_weaponvolume", Command_WeaponVolume, "Set weapon sounds volume (0-100)");
+	RegConsoleCmd("sm_wvol", Command_WeaponVolume, "Set weapon sounds volume (0-100)");
 
 	// Single cookie for both settings
-	g_hCookieStopSound = RegClientCookie("sound_settings", "Sound settings (weapon sounds : map music)", CookieAccess_Protected);
+	g_hCookieStopSound = RegClientCookie("sound_settings", "Sound settings (weapon sounds : map music : weapon volume)", CookieAccess_Protected);
 
 	SetCookieMenuItem(CookieMenuHandler_StopSounds, 0, "Stop sounds");
 
@@ -121,6 +169,15 @@ public void OnPluginEnd()
 public void OnMapStart()
 {
 	g_MapMusic.Clear();
+
+	for (int i = 0; i < sizeof(g_sWeaponShootSounds); i++)
+	{
+		if (g_sWeaponShootSounds[i][0])
+			PrecacheScriptSound(g_sWeaponShootSounds[i]);
+	}
+
+	PrecacheScriptSound("Weapon_USP.SilencedShot");
+	PrecacheScriptSound("Weapon_M4A1.Silenced");
 }
 
 public void OnMapEnd()
@@ -143,8 +200,10 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 	if (!IsClientInGame(client) || GetClientTeam(client) <= CS_TEAM_SPECTATOR)
 		return;
 
-	if (g_bStopWeaponSounds[client])
+	if (g_iWeaponVolume[client] == 0)
 		CPrintToChat(client, "%t %t", "Chat Prefix", "Weapon sounds disabled");
+	else if (g_iWeaponVolume[client] < WEAPON_VOLUME_NORMAL)
+		CPrintToChat(client, "%t %t", "Chat Prefix", "Weapon sounds volume", g_iWeaponVolume[client]);
 
 	if (g_bStopMapMusic[client])
 		CPrintToChat(client, "%t %t", "Chat Prefix", "Map music disabled");
@@ -158,20 +217,58 @@ public Action Command_StopSound(int client, int args)
 		return Plugin_Handled;
 	}
 
-	g_bStopWeaponSounds[client] = !g_bStopWeaponSounds[client];
+	SetWeaponVolume(client, g_iWeaponVolume[client] == 0 ? WEAPON_VOLUME_NORMAL : 0);
+	return Plugin_Handled;
+}
+
+public Action Command_WeaponVolume(int client, int args)
+{
+	if (client == 0)
+	{
+		ReplyToCommand(client, "[SM] Cannot use command from server console.");
+		return Plugin_Handled;
+	}
+
+	if (args < 1)
+	{
+		CReplyToCommand(client, "%t %t", "Chat Prefix", "Weapon volume usage");
+		ShowStopSoundsSettingsMenu(client);
+		return Plugin_Handled;
+	}
+
+	char sArg[8];
+	GetCmdArg(1, sArg, sizeof(sArg));
+
+	int iVolume;
+	if (StringToIntEx(sArg, iVolume) == 0 || iVolume < 0 || iVolume > WEAPON_VOLUME_NORMAL)
+	{
+		CReplyToCommand(client, "%t %t", "Chat Prefix", "Weapon volume usage");
+		return Plugin_Handled;
+	}
+
+	SetWeaponVolume(client, iVolume);
+	return Plugin_Handled;
+}
+
+void SetWeaponVolume(int client, int iVolume)
+{
+	g_iWeaponVolume[client] = iVolume;
 	CheckWeaponSoundsHooks();
 
-	if (g_bStopWeaponSounds[client])
+	if (iVolume == 0)
 	{
-		CReplyToCommand(client, "%t %t", "Chat Prefix", "Weapon sounds disabled");
+		CPrintToChat(client, "%t %t", "Chat Prefix", "Weapon sounds disabled");
+	}
+	else if (iVolume == WEAPON_VOLUME_NORMAL)
+	{
+		CPrintToChat(client, "%t %t", "Chat Prefix", "Weapon sounds enabled");
 	}
 	else
 	{
-		CReplyToCommand(client, "%t %t", "Chat Prefix", "Weapon sounds enabled");
+		CPrintToChat(client, "%t %t", "Chat Prefix", "Weapon sounds volume", iVolume);
 	}
 
 	SaveClientSettings(client);
-	return Plugin_Handled;
 }
 
 public Action Command_StopMusic(int client, int args)
@@ -201,8 +298,9 @@ public Action Command_StopMusic(int client, int args)
 
 void SaveClientSettings(int client)
 {
+	// First two digits keep the legacy format (weapon sounds stopped, map music stopped).
 	char sBuffer[8];
-	Format(sBuffer, sizeof(sBuffer), "%d%d", g_bStopWeaponSounds[client] ? 1 : 0, g_bStopMapMusic[client] ? 1 : 0);
+	Format(sBuffer, sizeof(sBuffer), "%d%d%d", g_iWeaponVolume[client] == 0 ? 1 : 0, g_bStopMapMusic[client] ? 1 : 0, g_iWeaponVolume[client]);
 	SetClientCookie(client, g_hCookieStopSound, sBuffer);
 }
 
@@ -211,21 +309,25 @@ public void OnClientCookiesCached(int client)
 	char sBuffer[8];
 	GetClientCookie(client, g_hCookieStopSound, sBuffer, sizeof(sBuffer));
 
-	// Parse the cookie format: %d%d (weapon sounds, map music)
+	// Parse the cookie format: %d%d[%d] (weapon sounds, map music[, weapon volume])
 	if (sBuffer[0] != '\0' && strlen(sBuffer) >= 2)
 	{
-		g_bStopWeaponSounds[client] = (sBuffer[0] == '1');
+		g_iWeaponVolume[client] = (sBuffer[0] == '1') ? 0 : WEAPON_VOLUME_NORMAL;
 		g_bStopMapMusic[client] = (sBuffer[1] == '1');
+
+		int iVolume;
+		if (sBuffer[0] != '1' && StringToIntEx(sBuffer[2], iVolume) > 0 && iVolume >= 0 && iVolume <= WEAPON_VOLUME_NORMAL)
+			g_iWeaponVolume[client] = iVolume;
 	}
 	else
 	{
 		// Default values if cookie is empty or invalid
-		g_bStopWeaponSounds[client] = false;
+		g_iWeaponVolume[client] = WEAPON_VOLUME_NORMAL;
 		g_bStopMapMusic[client] = false;
 	}
 
 	// Update hook states
-	if (g_bStopWeaponSounds[client])
+	if (g_iWeaponVolume[client] < WEAPON_VOLUME_NORMAL)
 		g_bStopWeaponSoundsHooked = true;
 	if (g_bStopMapMusic[client])
 		g_bStopMapMusicHooked = true;
@@ -233,7 +335,7 @@ public void OnClientCookiesCached(int client)
 
 public void OnClientDisconnect(int client)
 {
-	g_bStopWeaponSounds[client] = false;
+	g_iWeaponVolume[client] = WEAPON_VOLUME_NORMAL;
 	g_bStopMapMusic[client] = false;
 
 	CheckWeaponSoundsHooks();
@@ -246,7 +348,7 @@ void CheckWeaponSoundsHooks()
 
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (g_bStopWeaponSounds[i])
+		if (g_iWeaponVolume[i] < WEAPON_VOLUME_NORMAL)
 		{
 			bShouldHook = true;
 			break;
@@ -319,7 +421,12 @@ void ShowStopSoundsSettingsMenu(int client)
 
 	char sBuffer[128];
 
-	Format(sBuffer, sizeof(sBuffer), "%T%T", "Weapon Sounds", client, g_bStopWeaponSounds[client] ? "Disabled" : "Enabled", client);
+	if (g_iWeaponVolume[client] == 0)
+		Format(sBuffer, sizeof(sBuffer), "%T%T", "Weapon Sounds", client, "Disabled", client);
+	else if (g_iWeaponVolume[client] == WEAPON_VOLUME_NORMAL)
+		Format(sBuffer, sizeof(sBuffer), "%T%T", "Weapon Sounds", client, "Enabled", client);
+	else
+		Format(sBuffer, sizeof(sBuffer), "%T%T", "Weapon Sounds", client, "Volume Value", client, g_iWeaponVolume[client]);
 	menu.AddItem("0", sBuffer);
 
 	Format(sBuffer, sizeof(sBuffer), "%T%T", "Map Sounds", client, g_bStopMapMusic[client] ? "Disabled" : "Enabled", client);
@@ -339,17 +446,9 @@ public int MenuHandler_StopSoundsSettings(Menu menu, MenuAction action, int clie
 	{
 		if (selection == 0)
 		{
-			g_bStopWeaponSounds[client] = !g_bStopWeaponSounds[client];
-			CheckWeaponSoundsHooks();
-
-			if (g_bStopWeaponSounds[client])
-			{
-				CPrintToChat(client, "%t %t", "Chat Prefix", "Weapon sounds disabled");
-			}
-			else
-			{
-				CPrintToChat(client, "%t %t", "Chat Prefix", "Weapon sounds enabled");
-			}
+			SetWeaponVolume(client, GetNextWeaponVolumeStep(g_iWeaponVolume[client]));
+			ShowStopSoundsSettingsMenu(client);
+			return 0;
 		}
 		else if (selection == 1)
 		{
@@ -382,7 +481,7 @@ public Action Hook_NormalSound_CSS(int clients[MAXPLAYERS], int &numClients, cha
 	  int &entity, int &channel, float &volume, int &level, int &pitch, int &flags,
 	  char soundEntry[PLATFORM_MAX_PATH], int &seed)
 {
-	if (!g_bStopWeaponSoundsHooked)
+	if (!g_bStopWeaponSoundsHooked || g_bEmittingScaledSound)
 		return Plugin_Continue;
 
 	// Ignore non-weapon sounds.
@@ -393,17 +492,33 @@ public Action Hook_NormalSound_CSS(int clients[MAXPLAYERS], int &numClients, cha
 		return Plugin_Continue;
 	}
 
+	int[] scaledClients = new int[numClients];
+	int scaledTotal = 0;
+
 	int j = 0;
 	for (int i = 0; i < numClients; i++)
 	{
 		int client = clients[i];
-		if (!g_bStopWeaponSounds[client] && IsClientInGame(client))
+		if (!IsClientInGame(client) || g_iWeaponVolume[client] == 0)
+			continue;
+
+		if (g_iWeaponVolume[client] < WEAPON_VOLUME_NORMAL)
 		{
-			// Keep client.
-			clients[j] = clients[i];
-			j++;
+			// Re-emitted below with a reduced volume.
+			scaledClients[scaledTotal++] = client;
+			continue;
 		}
+
+		// Keep client.
+		clients[j] = clients[i];
+		j++;
 	}
+
+	if (j == numClients)
+		return Plugin_Continue;
+
+	if (scaledTotal > 0)
+		EmitScaledSound(scaledClients, scaledTotal, sample, entity, channel, level, flags, volume, pitch, NULL_VECTOR);
 
 	numClients = j;
 
@@ -418,13 +533,21 @@ public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int nu
 	// Check which clients need to be excluded.
 	int[] newClients = new int[numClients];
 	int newTotal = 0;
+	int[] scaledClients = new int[numClients];
+	int scaledTotal = 0;
 
 	for (int i = 0; i < numClients; i++)
 	{
-		if (Players[i] > 0 && Players[i] <= MaxClients && IsClientInGame(Players[i]) && !g_bStopWeaponSounds[Players[i]])
-		{
-			newClients[newTotal++] = Players[i];
-		}
+		int client = Players[i];
+		if (client <= 0 || client > MaxClients || !IsClientInGame(client) || g_iWeaponVolume[client] == 0)
+			continue;
+
+		// The client plays the shoot sound itself when it receives this tempent,
+		// so clients with a reduced volume get the sound emitted by the server instead.
+		if (g_iWeaponVolume[client] < WEAPON_VOLUME_NORMAL)
+			scaledClients[scaledTotal++] = client;
+		else
+			newClients[newTotal++] = client;
 	}
 
 	if (newTotal == numClients)
@@ -432,7 +555,11 @@ public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int nu
 		// No clients were excluded.
 		return Plugin_Continue;
 	}
-	else if (newTotal == 0)
+
+	if (scaledTotal > 0)
+		EmitScaledShootSound(scaledClients, scaledTotal);
+
+	if (newTotal == 0)
 	{
 		// All clients were excluded and there is no need to broadcast.
 		return Plugin_Stop;
@@ -470,7 +597,7 @@ public Action Hook_ReloadEffect_CSS(UserMsg msg_id, BfRead msg, const int[] play
 	for (int i = 0; i < playersNum; i++)
 	{
 		int client_ = players[i];
-		if (client_ > 0 && client_ <= MaxClients && IsClientInGame(client_) && !g_bStopWeaponSounds[client_])
+		if (client_ > 0 && client_ <= MaxClients && IsClientInGame(client_) && g_iWeaponVolume[client_] != 0)
 		{
 			newClients[newTotal++] = client_;
 		}
@@ -592,4 +719,80 @@ public Action Hook_AmbientSound(char sample[PLATFORM_MAX_PATH], int &entity, flo
 
 	// Block the default sound..
 	return Plugin_Handled;
+}
+
+int GetNextWeaponVolumeStep(int iVolume)
+{
+	for (int i = 0; i < sizeof(g_iWeaponVolumeSteps); i++)
+	{
+		if (iVolume > g_iWeaponVolumeSteps[i])
+			return g_iWeaponVolumeSteps[i];
+	}
+
+	return WEAPON_VOLUME_NORMAL;
+}
+
+// Must be called from the "Shotgun Shot" tempent hook, it reads the tempent being sent.
+void EmitScaledShootSound(const int[] clients, int numClients)
+{
+	int iWeaponID = TE_ReadNum("m_iWeaponID");
+	if (iWeaponID < 0 || iWeaponID >= sizeof(g_sWeaponShootSounds) || !g_sWeaponShootSounds[iWeaponID][0])
+		return;
+
+	char sGameSound[32];
+	strcopy(sGameSound, sizeof(sGameSound), g_sWeaponShootSounds[iWeaponID]);
+
+	if (TE_ReadNum("m_iMode") == CSS_SECONDARY_MODE)
+	{
+		if (iWeaponID == CSS_WEAPON_USP)
+			strcopy(sGameSound, sizeof(sGameSound), "Weapon_USP.SilencedShot");
+		else if (iWeaponID == CSS_WEAPON_M4A1)
+			strcopy(sGameSound, sizeof(sGameSound), "Weapon_M4A1.Silenced");
+	}
+
+	// m_iPlayer is the entity index minus one.
+	int iShooter = TE_ReadNum("m_iPlayer") + 1;
+
+	float vOrigin[3];
+	TE_ReadVector("m_vecOrigin", vOrigin);
+
+	int iChannel, iLevel, iPitch;
+	float fVolume;
+	char sSample[PLATFORM_MAX_PATH];
+	if (!GetGameSoundParams(sGameSound, iChannel, iLevel, fVolume, iPitch, sSample, sizeof(sSample), iShooter))
+		return;
+
+	EmitScaledSound(clients, numClients, sSample, iShooter, iChannel, iLevel, SND_NOFLAGS, fVolume, iPitch, vOrigin);
+}
+
+// Emits a sound to each client with its own weapon volume, grouping clients sharing the same volume.
+void EmitScaledSound(const int[] clients, int numClients, const char[] sample, int entity, int channel, int level, int flags, float volume, int pitch, const float origin[3])
+{
+	int[] group = new int[numClients];
+	bool[] done = new bool[numClients];
+
+	// Our own emits must not be caught again by the normal sound hook.
+	g_bEmittingScaledSound = true;
+
+	for (int i = 0; i < numClients; i++)
+	{
+		if (done[i])
+			continue;
+
+		int iVolume = g_iWeaponVolume[clients[i]];
+		int groupTotal = 0;
+
+		for (int j = i; j < numClients; j++)
+		{
+			if (!done[j] && g_iWeaponVolume[clients[j]] == iVolume)
+			{
+				group[groupTotal++] = clients[j];
+				done[j] = true;
+			}
+		}
+
+		EmitSound(group, groupTotal, sample, entity, channel, level, flags, volume * float(iVolume) / 100.0, pitch, -1, origin);
+	}
+
+	g_bEmittingScaledSound = false;
 }
