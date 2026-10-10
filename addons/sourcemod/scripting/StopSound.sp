@@ -69,7 +69,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.3.0",
+	version = "3.3.1",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -396,7 +396,7 @@ void StopMapMusic(int client)
 
 		g_MapMusic.GetString(sEntity, sSample, sizeof(sSample));
 
-		EmitSoundToClient(client, sSample, entity, SNDCHAN_STATIC, SNDLEVEL_NONE, SND_STOPLOOPING, SNDVOL_NORMAL, SNDPITCH_NORMAL);
+		EmitSoundToClient(client, sSample, entity, SNDCHAN_STATIC, SNDLEVEL_NONE, SND_STOP, SNDVOL_NORMAL, SNDPITCH_NORMAL);
 	}
 	delete MapMusicSnap;
 }
@@ -698,7 +698,7 @@ public Action Hook_AmbientSound(char sample[PLATFORM_MAX_PATH], int &entity, flo
 					continue;
 
 				// Stop the old sound..
-				EmitSoundToClient(client, sample, entity, SNDCHAN_STATIC, SNDLEVEL_NONE, SND_STOPLOOPING, SNDVOL_NORMAL, SNDPITCH_NORMAL);
+				EmitSoundToClient(client, sample, entity, SNDCHAN_STATIC, SNDLEVEL_NONE, SND_STOP, SNDVOL_NORMAL, SNDPITCH_NORMAL);
 
 				// Pass through the new sound..
 				EmitSoundToClient(client, sample, entity, SNDCHAN_STATIC, level, flags, volume, pitch);
