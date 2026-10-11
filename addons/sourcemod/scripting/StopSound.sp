@@ -47,6 +47,13 @@ char g_sWeaponShootSounds[][] =
 	"Weapon_P90.Single"
 };
 
+// Stops a static sound without reordering it. A bare SND_STOP is networked without a
+// sequence number, so the client plays it before every other sound of the packet:
+// "stop + play" pairs sent in the same packet become "stop, stop, play, play" and the
+// copies stack. Any extra flag keeps the sequence number (this is the value 6 that
+// SND_STOPLOOPING had in SourceMod < 1.12, used by StopSound <= 3.2.x).
+#define SND_STOP_IN_ORDER (SND_STOP | SND_CHANGEPITCH)
+
 #define CSS_WEAPON_USP 16
 #define CSS_WEAPON_M4A1 21
 #define CSS_SECONDARY_MODE 1
@@ -69,7 +76,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.3.1",
+	version = "3.3.2",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -396,7 +403,7 @@ void StopMapMusic(int client)
 
 		g_MapMusic.GetString(sEntity, sSample, sizeof(sSample));
 
-		EmitSoundToClient(client, sSample, entity, SNDCHAN_STATIC, SNDLEVEL_NONE, SND_STOP, SNDVOL_NORMAL, SNDPITCH_NORMAL);
+		EmitSoundToClient(client, sSample, entity, SNDCHAN_STATIC, SNDLEVEL_NONE, SND_STOP_IN_ORDER, SNDVOL_NORMAL, SNDPITCH_NORMAL);
 	}
 	delete MapMusicSnap;
 }
@@ -698,7 +705,7 @@ public Action Hook_AmbientSound(char sample[PLATFORM_MAX_PATH], int &entity, flo
 					continue;
 
 				// Stop the old sound..
-				EmitSoundToClient(client, sample, entity, SNDCHAN_STATIC, SNDLEVEL_NONE, SND_STOP, SNDVOL_NORMAL, SNDPITCH_NORMAL);
+				EmitSoundToClient(client, sample, entity, SNDCHAN_STATIC, SNDLEVEL_NONE, SND_STOP_IN_ORDER, SNDVOL_NORMAL, SNDPITCH_NORMAL);
 
 				// Pass through the new sound..
 				EmitSoundToClient(client, sample, entity, SNDCHAN_STATIC, level, flags, volume, pitch);
