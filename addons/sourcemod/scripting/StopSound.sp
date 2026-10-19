@@ -76,7 +76,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.3.2",
+	version = "3.3.3",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -488,7 +488,8 @@ public Action Hook_NormalSound_CSS(int clients[MAXPLAYERS], int &numClients, cha
 	  int &entity, int &channel, float &volume, int &level, int &pitch, int &flags,
 	  char soundEntry[PLATFORM_MAX_PATH], int &seed)
 {
-	if (!g_bStopWeaponSoundsHooked || g_bEmittingScaledSound)
+	// No recipient: nothing to filter (and new int[0] would throw "Invalid array size").
+	if (!g_bStopWeaponSoundsHooked || g_bEmittingScaledSound || numClients <= 0)
 		return Plugin_Continue;
 
 	// Ignore non-weapon sounds.
