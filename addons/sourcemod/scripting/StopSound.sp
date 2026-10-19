@@ -535,7 +535,7 @@ public Action Hook_NormalSound_CSS(int clients[MAXPLAYERS], int &numClients, cha
 
 public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int numClients, float delay)
 {
-	if (!g_bStopWeaponSoundsHooked)
+	if (!g_bStopWeaponSoundsHooked || numClients <= 0)
 		return Plugin_Continue;
 
 	// Check which clients need to be excluded.
@@ -593,7 +593,7 @@ public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int nu
 
 public Action Hook_ReloadEffect_CSS(UserMsg msg_id, BfRead msg, const int[] players, int playersNum, bool reliable, bool init)
 {
-	if (!g_bStopWeaponSoundsHooked)
+	if (!g_bStopWeaponSoundsHooked || playersNum <= 0)
 		return Plugin_Continue;
 
 	int client = msg.ReadShort();
