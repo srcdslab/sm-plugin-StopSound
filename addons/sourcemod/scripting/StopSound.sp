@@ -69,14 +69,14 @@ bool g_bLate = false;
 
 StringMap g_MapMusic;
 
-Handle g_hCookieStopSound = null;
+Cookie g_hCookieStopSound = null;
 
 public Plugin myinfo =
 {
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.3.2",
+	version = "3.3.3",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -119,7 +119,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_wvol", Command_WeaponVolume, "Set weapon sounds volume (0-100)");
 
 	// Single cookie for both settings
-	g_hCookieStopSound = RegClientCookie("sound_settings", "Sound settings (weapon sounds : map music : weapon volume)", CookieAccess_Protected);
+	g_hCookieStopSound = new Cookie("sound_settings", "Sound settings (weapon sounds : map music : weapon volume)", CookieAccess_Protected);
 
 	SetCookieMenuItem(CookieMenuHandler_StopSounds, 0, "Stop sounds");
 
@@ -308,13 +308,13 @@ void SaveClientSettings(int client)
 	// First two digits keep the legacy format (weapon sounds stopped, map music stopped).
 	char sBuffer[8];
 	Format(sBuffer, sizeof(sBuffer), "%d%d%d", g_iWeaponVolume[client] == 0 ? 1 : 0, g_bStopMapMusic[client] ? 1 : 0, g_iWeaponVolume[client]);
-	SetClientCookie(client, g_hCookieStopSound, sBuffer);
+	g_hCookieStopSound.Set(client, sBuffer);
 }
 
 public void OnClientCookiesCached(int client)
 {
 	char sBuffer[8];
-	GetClientCookie(client, g_hCookieStopSound, sBuffer, sizeof(sBuffer));
+	g_hCookieStopSound.Get(client, sBuffer, sizeof(sBuffer));
 
 	// Parse the cookie format: %d%d[%d] (weapon sounds, map music[, weapon volume])
 	if (sBuffer[0] != '\0' && strlen(sBuffer) >= 2)
@@ -661,7 +661,7 @@ public void OnReloadEffect(DataPack pack)
 		}
 	}
 
-	CloseHandle(pack);
+	delete pack;
 
 	// All clients were excluded and there is no need to broadcast.
 	if (playersNum == 0)
@@ -670,11 +670,13 @@ public void OnReloadEffect(DataPack pack)
 	Handle ReloadEffect = StartMessage("ReloadEffect", players, playersNum, USERMSG_RELIABLE | USERMSG_BLOCKHOOKS);
 	if (GetFeatureStatus(FeatureType_Native, "GetUserMessageType") == FeatureStatus_Available && GetUserMessageType() == UM_Protobuf)
 	{
-		PbSetInt(ReloadEffect, "entidx", client);
+		Protobuf pb = UserMessageToProtobuf(ReloadEffect);
+		pb.SetInt("entidx", client);
 	}
 	else
 	{
-		BfWriteShort(ReloadEffect, client);
+		BfWrite bf = UserMessageToBfWrite(ReloadEffect);
+		bf.WriteShort(client);
 	}
 
 	EndMessage();
