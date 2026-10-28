@@ -64,6 +64,7 @@ bool g_bStopMapMusic[MAXPLAYERS+1] = { false, ... };
 
 bool g_bStopWeaponSoundsHooked = false;
 bool g_bEmittingScaledSound = false;
+bool g_bResendingShotgunShot = false;
 bool g_bStopMapMusicHooked = false;
 bool g_bLate = false;
 
@@ -76,7 +77,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.3.3",
+	version = "3.3.4",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -537,6 +538,9 @@ public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int nu
 	if (!g_bStopWeaponSoundsHooked)
 		return Plugin_Continue;
 
+	if (g_bResendingShotgunShot)
+		return Plugin_Continue;
+
 	// Check which clients need to be excluded.
 	int[] newClients = new int[numClients];
 	int newTotal = 0;
@@ -573,19 +577,13 @@ public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int nu
 	}
 
 	// Re-broadcast to clients that still need it.
-	float vTemp[3];
+	// TE_Start() selects the same tempent instance that is being hooked, which still
+	// holds the data of this shot, so there is nothing to copy before sending it.
+	// TE_Send() runs this hook again for the re-broadcast: skip it, nothing to filter.
+	g_bResendingShotgunShot = true;
 	TE_Start("Shotgun Shot");
-	TE_ReadVector("m_vecOrigin", vTemp);
-	TE_WriteVector("m_vecOrigin", vTemp);
-	TE_WriteFloat("m_vecAngles[0]", TE_ReadFloat("m_vecAngles[0]"));
-	TE_WriteFloat("m_vecAngles[1]", TE_ReadFloat("m_vecAngles[1]"));
-	TE_WriteNum("m_iWeaponID", TE_ReadNum("m_iWeaponID"));
-	TE_WriteNum("m_iMode", TE_ReadNum("m_iMode"));
-	TE_WriteNum("m_iSeed", TE_ReadNum("m_iSeed"));
-	TE_WriteNum("m_iPlayer", TE_ReadNum("m_iPlayer"));
-	TE_WriteFloat("m_fInaccuracy", TE_ReadFloat("m_fInaccuracy"));
-	TE_WriteFloat("m_fSpread", TE_ReadFloat("m_fSpread"));
 	TE_Send(newClients, newTotal, delay);
+	g_bResendingShotgunShot = false;
 
 	return Plugin_Stop;
 }
