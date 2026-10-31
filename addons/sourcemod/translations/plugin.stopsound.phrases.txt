@@ -4,18 +4,33 @@
 	{
 		"en"	"{green}[StopSound]{default}"
 		"ru"	"{green}[StopSound]{default}"
+		"fr"	"{green}[StopSound]{default}"
+		"es"	"{green}[StopSound]{default}"
+		"de"	"{green}[StopSound]{default}"
+		"pt"	"{green}[StopSound]{default}"
+		"chi"	"{green}[StopSound]{default}"
 	}
 
 	"Weapon sounds enabled"
 	{
 		"en"	"Weapon sounds {green}enabled{default}!"
 		"ru"	"Звуки стрельбы {green}включены{default}!"
+		"fr"	"Sons des armes {green}activés{default} !"
+		"es"	"¡Sonidos de armas {green}activados{default}!"
+		"de"	"Waffengeräusche {green}aktiviert{default}!"
+		"pt"	"Sons das armas {green}ativados{default}!"
+		"chi"	"武器声音已{green}开启{default}！"
 	}
 
 	"Weapon sounds disabled"
 	{
 		"en"	"Weapon sounds {darkred}disabled{default}!"
 		"ru"	"Звуки стрельбы {darkred}отключены{default}!"
+		"fr"	"Sons des armes {darkred}désactivés{default} !"
+		"es"	"¡Sonidos de armas {darkred}desactivados{default}!"
+		"de"	"Waffengeräusche {darkred}deaktiviert{default}!"
+		"pt"	"Sons das armas {darkred}desativados{default}!"
+		"chi"	"武器声音已{darkred}关闭{default}！"
 	}
 
 	"Weapon sounds volume"
@@ -23,60 +38,110 @@
 		"#format"	"{1:d}"
 		"en"	"Weapon sounds volume set to {green}{1}%%{default}!"
 		"ru"	"Громкость звуков стрельбы: {green}{1}%%{default}!"
+		"fr"	"Volume des sons des armes réglé à {green}{1}%%{default} !"
+		"es"	"¡Volumen de sonidos de armas ajustado a {green}{1}%%{default}!"
+		"de"	"Lautstärke der Waffengeräusche auf {green}{1}%%{default} gesetzt!"
+		"pt"	"Volume dos sons das armas definido para {green}{1}%%{default}!"
+		"chi"	"武器声音音量已设为{green}{1}%%{default}！"
 	}
 
 	"Weapon volume usage"
 	{
 		"en"	"Usage: {green}sm_weaponvolume <0-100>{default}"
 		"ru"	"Использование: {green}sm_weaponvolume <0-100>{default}"
+		"fr"	"Utilisation : {green}sm_weaponvolume <0-100>{default}"
+		"es"	"Uso: {green}sm_weaponvolume <0-100>{default}"
+		"de"	"Verwendung: {green}sm_weaponvolume <0-100>{default}"
+		"pt"	"Uso: {green}sm_weaponvolume <0-100>{default}"
+		"chi"	"用法：{green}sm_weaponvolume <0-100>{default}"
 	}
 
 	"Map music enabled"
 	{
 		"en"	"Map music {green}enabled{default}!"
 		"ru"	"Музыка на картах {green}включена{default}!"
+		"fr"	"Musique de la map {green}activée{default} !"
+		"es"	"¡Música del mapa {green}activada{default}!"
+		"de"	"Map-Musik {green}aktiviert{default}!"
+		"pt"	"Música do mapa {green}ativada{default}!"
+		"chi"	"地图音乐已{green}开启{default}！"
 	}
 
 	"Map music disabled"
 	{
 		"en"	"Map music {darkred}disabled{default}!"
 		"ru"	"Музыка на картах {darkred}отключена{default}!"
+		"fr"	"Musique de la map {darkred}désactivée{default} !"
+		"es"	"¡Música del mapa {darkred}desactivada{default}!"
+		"de"	"Map-Musik {darkred}deaktiviert{default}!"
+		"pt"	"Música do mapa {darkred}desativada{default}!"
+		"chi"	"地图音乐已{darkred}关闭{default}！"
 	}
 
 	"Cookie Menu Stop Sounds"
 	{
 		"en"	"Stop Sounds"
 		"ru"	"Отключение звуков"
+		"fr"	"Stop Sounds"
+		"es"	"Stop Sounds"
+		"de"	"Stop Sounds"
+		"pt"	"Stop Sounds"
+		"chi"	"屏蔽声音"
 	}
 
 	"Cookie Menu Stop Sounds Title"
 	{
 		"en"	"Stop Sounds Configuration"
-		"ru"	"Настройки Отключения Звуков"
+		"ru"	"Настройки отключения звуков"
+		"fr"	"Configuration de Stop Sounds"
+		"es"	"Configuración de Stop Sounds"
+		"de"	"Stop-Sounds-Einstellungen"
+		"pt"	"Configuração do Stop Sounds"
+		"chi"	"屏蔽声音设置"
 	}
 
 	"Weapon Sounds"
 	{
 		"en"	"Weapon sounds"
 		"ru"	"Звуки стрельбы"
+		"fr"	"Sons des armes"
+		"es"	"Sonidos de armas"
+		"de"	"Waffengeräusche"
+		"pt"	"Sons das armas"
+		"chi"	"武器声音"
 	}
 
 	"Map Sounds"
 	{
 		"en"	"Map music"
 		"ru"	"Музыка на картах"
+		"fr"	"Musique de la map"
+		"es"	"Música del mapa"
+		"de"	"Map-Musik"
+		"pt"	"Música do mapa"
+		"chi"	"地图音乐"
 	}
 
 	"Disabled"
 	{
 		"en"	": Disabled"
 		"ru"	" [Выключено]"
+		"fr"	" : Désactivé"
+		"es"	": Desactivado"
+		"de"	": Deaktiviert"
+		"pt"	": Desativado"
+		"chi"	"：关闭"
 	}
 
 	"Enabled"
 	{
 		"en"	": Enabled"
 		"ru"	" [Включено]"
+		"fr"	" : Activé"
+		"es"	": Activado"
+		"de"	": Aktiviert"
+		"pt"	": Ativado"
+		"chi"	"：开启"
 	}
 
 	"Volume Value"
@@ -84,5 +149,10 @@
 		"#format"	"{1:d}"
 		"en"	": {1}%%"
 		"ru"	" [{1}%%]"
+		"fr"	" : {1}%%"
+		"es"	": {1}%%"
+		"de"	": {1}%%"
+		"pt"	": {1}%%"
+		"chi"	"：{1}%%"
 	}
 }
