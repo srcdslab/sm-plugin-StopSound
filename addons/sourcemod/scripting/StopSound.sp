@@ -220,7 +220,7 @@ public Action Command_StopSound(int client, int args)
 {
 	if (client == 0)
 	{
-		ReplyToCommand(client, "[SM] Cannot use command from server console.");
+		ReplyToCommand(client, "%t", "SS_Server_Console");
 		return Plugin_Handled;
 	}
 
@@ -232,7 +232,7 @@ public Action Command_WeaponVolume(int client, int args)
 {
 	if (client == 0)
 	{
-		ReplyToCommand(client, "[SM] Cannot use command from server console.");
+		ReplyToCommand(client, "%t", "SS_Server_Console");
 		return Plugin_Handled;
 	}
 
@@ -282,7 +282,7 @@ public Action Command_StopMusic(int client, int args)
 {
 	if (client == 0)
 	{
-		ReplyToCommand(client, "[SM] Cannot use command from server console.");
+		ReplyToCommand(client, "%t", "SS_Server_Console");
 		return Plugin_Handled;
 	}
 
