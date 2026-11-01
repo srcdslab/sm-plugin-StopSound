@@ -76,7 +76,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.3.3",
+	version = "3.4.0",
 	url = "http://www.sourcemod.net/"
 };
 
