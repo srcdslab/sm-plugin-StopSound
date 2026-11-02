@@ -155,4 +155,15 @@
 		"pt"	": {1}%%"
 		"chi"	"：{1}%%"
 	}
+
+	"SS_Server_Console"
+	{
+		"en"		"[SM] Cannot use command from server console."
+		"fr"		"[SM] Impossible d'utiliser cette commande depuis la console du serveur."
+		"ru"		"[SM] Эту команду нельзя использовать из консоли сервера."
+		"es"		"[SM] No se puede usar este comando desde la consola del servidor."
+		"de"		"[SM] Dieser Befehl kann nicht über die Serverkonsole verwendet werden."
+		"pt"		"[SM] Não é possível usar este comando pelo console do servidor."
+		"chi"		"[SM] 无法在服务器控制台中使用此命令。"
+	}
 }

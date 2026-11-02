@@ -76,7 +76,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.3.3",
+	version = "3.4.0",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -220,7 +220,7 @@ public Action Command_StopSound(int client, int args)
 {
 	if (client == 0)
 	{
-		ReplyToCommand(client, "[SM] Cannot use command from server console.");
+		ReplyToCommand(client, "%t", "SS_Server_Console");
 		return Plugin_Handled;
 	}
 
@@ -232,7 +232,7 @@ public Action Command_WeaponVolume(int client, int args)
 {
 	if (client == 0)
 	{
-		ReplyToCommand(client, "[SM] Cannot use command from server console.");
+		ReplyToCommand(client, "%t", "SS_Server_Console");
 		return Plugin_Handled;
 	}
 
@@ -282,7 +282,7 @@ public Action Command_StopMusic(int client, int args)
 {
 	if (client == 0)
 	{
-		ReplyToCommand(client, "[SM] Cannot use command from server console.");
+		ReplyToCommand(client, "%t", "SS_Server_Console");
 		return Plugin_Handled;
 	}
 
