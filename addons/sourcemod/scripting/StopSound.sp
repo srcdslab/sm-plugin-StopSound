@@ -77,7 +77,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.3.4",
+	version = "3.4.1",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -221,7 +221,7 @@ public Action Command_StopSound(int client, int args)
 {
 	if (client == 0)
 	{
-		ReplyToCommand(client, "[SM] Cannot use command from server console.");
+		ReplyToCommand(client, "%t", "SS_Server_Console");
 		return Plugin_Handled;
 	}
 
@@ -233,7 +233,7 @@ public Action Command_WeaponVolume(int client, int args)
 {
 	if (client == 0)
 	{
-		ReplyToCommand(client, "[SM] Cannot use command from server console.");
+		ReplyToCommand(client, "%t", "SS_Server_Console");
 		return Plugin_Handled;
 	}
 
@@ -283,7 +283,7 @@ public Action Command_StopMusic(int client, int args)
 {
 	if (client == 0)
 	{
-		ReplyToCommand(client, "[SM] Cannot use command from server console.");
+		ReplyToCommand(client, "%t", "SS_Server_Console");
 		return Plugin_Handled;
 	}
 
@@ -489,7 +489,8 @@ public Action Hook_NormalSound_CSS(int clients[MAXPLAYERS], int &numClients, cha
 	  int &entity, int &channel, float &volume, int &level, int &pitch, int &flags,
 	  char soundEntry[PLATFORM_MAX_PATH], int &seed)
 {
-	if (!g_bStopWeaponSoundsHooked || g_bEmittingScaledSound)
+	// No recipient: nothing to filter (and new int[0] would throw "Invalid array size").
+	if (!g_bStopWeaponSoundsHooked || g_bEmittingScaledSound || numClients <= 0)
 		return Plugin_Continue;
 
 	// Ignore non-weapon sounds.
@@ -535,7 +536,7 @@ public Action Hook_NormalSound_CSS(int clients[MAXPLAYERS], int &numClients, cha
 
 public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int numClients, float delay)
 {
-	if (!g_bStopWeaponSoundsHooked)
+	if (!g_bStopWeaponSoundsHooked || numClients <= 0)
 		return Plugin_Continue;
 
 	if (g_bResendingShotgunShot)
@@ -590,7 +591,7 @@ public Action Hook_ShotgunShot(const char[] te_name, const int[] Players, int nu
 
 public Action Hook_ReloadEffect_CSS(UserMsg msg_id, BfRead msg, const int[] players, int playersNum, bool reliable, bool init)
 {
-	if (!g_bStopWeaponSoundsHooked)
+	if (!g_bStopWeaponSoundsHooked || playersNum <= 0)
 		return Plugin_Continue;
 
 	int client = msg.ReadShort();
