@@ -9,6 +9,12 @@
 		"de"	"{green}[StopSound]{default}"
 		"pt"	"{green}[StopSound]{default}"
 		"chi"	"{green}[StopSound]{default}"
+		"pl"	"{green}[StopSound]{default}"
+		"tr"	"{green}[StopSound]{default}"
+		"it"	"{green}[StopSound]{default}"
+		"ua"	"{green}[StopSound]{default}"
+		"zho"	"{green}[StopSound]{default}"
+		"cze"	"{green}[StopSound]{default}"
 	}
 
 	"Weapon sounds enabled"
@@ -20,6 +26,12 @@
 		"de"	"Waffengeräusche {green}aktiviert{default}!"
 		"pt"	"Sons das armas {green}ativados{default}!"
 		"chi"	"武器声音已{green}开启{default}！"
+		"pl"	"Dźwięki broni {green}włączone{default}!"
+		"tr"	"Silah sesleri {green}açıldı{default}!"
+		"it"	"Suoni delle armi {green}attivati{default}!"
+		"ua"	"Звуки зброї {green}увімкнено{default}!"
+		"zho"	"武器聲音已{green}開啟{default}！"
+		"cze"	"Zvuky zbraní {green}zapnuty{default}!"
 	}
 
 	"Weapon sounds disabled"
@@ -31,6 +43,12 @@
 		"de"	"Waffengeräusche {darkred}deaktiviert{default}!"
 		"pt"	"Sons das armas {darkred}desativados{default}!"
 		"chi"	"武器声音已{darkred}关闭{default}！"
+		"pl"	"Dźwięki broni {darkred}wyłączone{default}!"
+		"tr"	"Silah sesleri {darkred}kapatıldı{default}!"
+		"it"	"Suoni delle armi {darkred}disattivati{default}!"
+		"ua"	"Звуки зброї {darkred}вимкнено{default}!"
+		"zho"	"武器聲音已{darkred}關閉{default}！"
+		"cze"	"Zvuky zbraní {darkred}vypnuty{default}!"
 	}
 
 	"Weapon sounds volume"
@@ -43,6 +61,12 @@
 		"de"	"Lautstärke der Waffengeräusche auf {green}{1}%%{default} gesetzt!"
 		"pt"	"Volume dos sons das armas definido para {green}{1}%%{default}!"
 		"chi"	"武器声音音量已设为{green}{1}%%{default}！"
+		"pl"	"Głośność dźwięków broni ustawiona na {green}{1}%%{default}!"
+		"tr"	"Silah sesi seviyesi {green}{1}%%{default} olarak ayarlandı!"
+		"it"	"Volume dei suoni delle armi impostato a {green}{1}%%{default}!"
+		"ua"	"Гучність звуків зброї встановлено на {green}{1}%%{default}!"
+		"zho"	"武器聲音音量已設為{green}{1}%%{default}！"
+		"cze"	"Hlasitost zvuků zbraní nastavena na {green}{1}%%{default}!"
 	}
 
 	"Weapon volume usage"
@@ -54,6 +78,12 @@
 		"de"	"Verwendung: {green}sm_weaponvolume <0-100>{default}"
 		"pt"	"Uso: {green}sm_weaponvolume <0-100>{default}"
 		"chi"	"用法：{green}sm_weaponvolume <0-100>{default}"
+		"pl"	"Użycie: {green}sm_weaponvolume <0-100>{default}"
+		"tr"	"Kullanım: {green}sm_weaponvolume <0-100>{default}"
+		"it"	"Utilizzo: {green}sm_weaponvolume <0-100>{default}"
+		"ua"	"Використання: {green}sm_weaponvolume <0-100>{default}"
+		"zho"	"用法：{green}sm_weaponvolume <0-100>{default}"
+		"cze"	"Použití: {green}sm_weaponvolume <0-100>{default}"
 	}
 
 	"Map music enabled"
@@ -65,6 +95,12 @@
 		"de"	"Map-Musik {green}aktiviert{default}!"
 		"pt"	"Música do mapa {green}ativada{default}!"
 		"chi"	"地图音乐已{green}开启{default}！"
+		"pl"	"Muzyka z mapy {green}włączona{default}!"
+		"tr"	"Harita müziği {green}açıldı{default}!"
+		"it"	"Musica della mappa {green}attivata{default}!"
+		"ua"	"Музику мапи {green}увімкнено{default}!"
+		"zho"	"地圖音樂已{green}開啟{default}！"
+		"cze"	"Hudba mapy {green}zapnuta{default}!"
 	}
 
 	"Map music disabled"
@@ -76,6 +112,12 @@
 		"de"	"Map-Musik {darkred}deaktiviert{default}!"
 		"pt"	"Música do mapa {darkred}desativada{default}!"
 		"chi"	"地图音乐已{darkred}关闭{default}！"
+		"pl"	"Muzyka z mapy {darkred}wyłączona{default}!"
+		"tr"	"Harita müziği {darkred}kapatıldı{default}!"
+		"it"	"Musica della mappa {darkred}disattivata{default}!"
+		"ua"	"Музику мапи {darkred}вимкнено{default}!"
+		"zho"	"地圖音樂已{darkred}關閉{default}！"
+		"cze"	"Hudba mapy {darkred}vypnuta{default}!"
 	}
 
 	"Cookie Menu Stop Sounds"
@@ -87,6 +129,12 @@
 		"de"	"Stop Sounds"
 		"pt"	"Stop Sounds"
 		"chi"	"屏蔽声音"
+		"pl"	"Stop Sounds"
+		"tr"	"Stop Sounds"
+		"it"	"Stop Sounds"
+		"ua"	"Stop Sounds"
+		"zho"	"Stop Sounds"
+		"cze"	"Stop Sounds"
 	}
 
 	"Cookie Menu Stop Sounds Title"
@@ -98,6 +146,12 @@
 		"de"	"Stop-Sounds-Einstellungen"
 		"pt"	"Configuração do Stop Sounds"
 		"chi"	"屏蔽声音设置"
+		"pl"	"Konfiguracja Stop Sounds"
+		"tr"	"Stop Sounds Yapılandırması"
+		"it"	"Configurazione Stop Sounds"
+		"ua"	"Налаштування Stop Sounds"
+		"zho"	"Stop Sounds 設定"
+		"cze"	"Nastavení Stop Sounds"
 	}
 
 	"Weapon Sounds"
@@ -109,6 +163,12 @@
 		"de"	"Waffengeräusche"
 		"pt"	"Sons das armas"
 		"chi"	"武器声音"
+		"pl"	"Dźwięki broni"
+		"tr"	"Silah sesleri"
+		"it"	"Suoni delle armi"
+		"ua"	"Звуки зброї"
+		"zho"	"武器聲音"
+		"cze"	"Zvuky zbraní"
 	}
 
 	"Map Sounds"
@@ -120,6 +180,12 @@
 		"de"	"Map-Musik"
 		"pt"	"Música do mapa"
 		"chi"	"地图音乐"
+		"pl"	"Muzyka z mapy"
+		"tr"	"Harita müziği"
+		"it"	"Musica della mappa"
+		"ua"	"Музика мапи"
+		"zho"	"地圖音樂"
+		"cze"	"Hudba mapy"
 	}
 
 	"Disabled"
@@ -131,6 +197,12 @@
 		"de"	": Deaktiviert"
 		"pt"	": Desativado"
 		"chi"	"：关闭"
+		"pl"	": Wyłączone"
+		"tr"	": Kapalı"
+		"it"	": Disattivato"
+		"ua"	": Вимкнено"
+		"zho"	"：關閉"
+		"cze"	": Vypnuto"
 	}
 
 	"Enabled"
@@ -142,6 +214,12 @@
 		"de"	": Aktiviert"
 		"pt"	": Ativado"
 		"chi"	"：开启"
+		"pl"	": Włączone"
+		"tr"	": Açık"
+		"it"	": Attivato"
+		"ua"	": Увімкнено"
+		"zho"	"：開啟"
+		"cze"	": Zapnuto"
 	}
 
 	"Volume Value"
@@ -154,6 +232,12 @@
 		"de"	": {1}%%"
 		"pt"	": {1}%%"
 		"chi"	"：{1}%%"
+		"pl"	": {1}%%"
+		"tr"	": {1}%%"
+		"it"	": {1}%%"
+		"ua"	": {1}%%"
+		"zho"	": {1}%%"
+		"cze"	": {1}%%"
 	}
 
 	"SS_Server_Console"
@@ -165,5 +249,11 @@
 		"de"		"[SM] Dieser Befehl kann nicht über die Serverkonsole verwendet werden."
 		"pt"		"[SM] Não é possível usar este comando pelo console do servidor."
 		"chi"		"[SM] 无法在服务器控制台中使用此命令。"
+		"pl"	"[SM] Nie można użyć tej komendy z konsoli serwera."
+		"tr"	"[SM] Bu komut sunucu konsolundan kullanılamaz."
+		"it"	"[SM] Impossibile usare questo comando dalla console del server."
+		"ua"	"[SM] Не можна використовувати команду з консолі сервера."
+		"zho"	"[SM] 無法從伺服器控制台使用此指令。"
+		"cze"	"[SM] Tento příkaz nelze použít z konzole serveru."
 	}
 }
