@@ -67,6 +67,7 @@ bool g_bEmittingScaledSound = false;
 bool g_bResendingShotgunShot = false;
 bool g_bStopMapMusicHooked = false;
 bool g_bLate = false;
+bool g_bAmbientHooked = false;
 
 StringMap g_MapMusic;
 
@@ -77,7 +78,7 @@ public Plugin myinfo =
 	name = "Toggle Game Sounds",
 	author = "GoD-Tony, edit by Obus + BotoX, Oleg Tsvetkov",
 	description = "Allows clients to stop hearing weapon sounds and map music",
-	version = "3.4.3",
+	version = "3.4.4",
 	url = "http://www.sourcemod.net/"
 };
 
@@ -104,9 +105,6 @@ public void OnPluginStart()
 
 	// Detect game and hook appropriate tempent.
 	AddTempEntHook("Shotgun Shot", Hook_ShotgunShot);
-
-	// Ambient sounds
-	AddAmbientSoundHook(Hook_AmbientSound);
 
 	// Map music will be caught here
 	HookEvent("round_end", Event_RoundEnd);
@@ -148,6 +146,18 @@ public void OnPluginStart()
 	}
 }
 
+public void OnAllPluginsLoaded()
+{
+	// Hook ambient sounds after the other plugins: Hook_AmbientSound returns Plugin_Handled
+	// as soon as one client stops map music, and SourceMod then skips every ambient hook
+	// registered after it (e.g. MusicName never sees the song, "!np" stays empty).
+	if (!g_bAmbientHooked)
+	{
+		AddAmbientSoundHook(Hook_AmbientSound);
+		g_bAmbientHooked = true;
+	}
+}
+
 public void OnPluginEnd()
 {
 	for (int client = 1; client <= MaxClients; client++)
@@ -162,7 +172,11 @@ public void OnPluginEnd()
 	RemoveTempEntHook("Shotgun Shot", Hook_ShotgunShot);
 
 	// Remove ambient sound hook
-	RemoveAmbientSoundHook(Hook_AmbientSound);
+	if (g_bAmbientHooked)
+	{
+		RemoveAmbientSoundHook(Hook_AmbientSound);
+		g_bAmbientHooked = false;
+	}
 
 	// Find ReloadEffect
 	UserMsg ReloadEffect = GetUserMessageId("ReloadEffect");
